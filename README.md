@@ -2,7 +2,7 @@
  OyasaiServer向けEventPack
  現在はBuildBattleのみ実装済み
 # OyasaiBuildBattleの使い方
- /oyasaibb start <min>
+ /oyasaibb start min(数字)
  このコマンドで建築時間を決めてタイマーを開始する
  (タイマーは２つ以上起動できない)
  
