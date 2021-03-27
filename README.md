@@ -1,0 +1,2 @@
+# SrainEventPack
+ OyasaiServer向けEventPack
