@@ -1,0 +1,17 @@
+name: SrainEventPack
+version: "0.1.0"
+api-version: "1.16"
+main: com.github.srain3.SEP
+author: Srain3
+
+commands:
+  oyasaibb:
+    usage: "/<command>"
+    description: Oyasai BuildBattle cmd.
+    permission: sep.oyasaibb
+    permission-message: "No Permission!!!"
+
+permissions:
+  sep.oyasaibb:
+    description: "Oyasai BuildBattleコマンドの全権限"
+    default: op
