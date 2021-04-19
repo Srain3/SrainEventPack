@@ -40,46 +40,38 @@ object VoteEvent : Listener {
                 val signmsg: Sign = e.clickedBlock!!.state as Sign
                 val signmsg1 = signmsg.getLine(0)
                 val signmsg3 = signmsg.getLine(2)
-                if (signmsg1 == chatcolor("[&9&lVote&r]")) { //クリックした看板はvoteではじまるか？
-                    if (main.votenum[signmsg3] != null) { //nullじゃなければ実行
-                        val playername = Regex(e.player.name)
-                        if (!playername.containsMatchIn(main.votedplayer[0]!!)) { //vote済みのプレイヤーか判断、false(なし)なら入りtrue(あり)なら出る
-                            val num = main.votenum[signmsg3]!! //vote主のプレイヤーから今の票を取得
-                            val num1: Int = num.plus(1) //1票増やす
-                            main.votenum[signmsg3] = num1 //vote主に反映する
-                            val votedp = main.votedplayer[0] //voteしたプレイヤー名を記録
-                            val votedp1 = votedp + e.player.name //プレイヤー名を追記
-                            main.votedplayer[0] = votedp1 //保存
+                if (signmsg1 == chatcolor("[&9&lVote&r]") && main.votenum[signmsg3] != null) {
+                    //クリックした看板はvoteで始まりvotenumに登録済みプレイヤーか？
+                    e.isCancelled = true
+                    if (main.voteptop[e.player.name] != null) { //すでに投票している人なら
+                        if (main.voteptop[e.player.name] == signmsg3) { //同じ人に票を入れたら
+                            e.player.sendMessage("投票済みです")
+                            return
+                        } else { //違う人に表を入れたら
+                            main.votenum[main.voteptop[e.player.name]!!] = main.votenum[main.voteptop[e.player.name]]?.minus(1)!!
+                            main.votenum[signmsg3] = main.votenum[signmsg3]?.plus(1)!!
                             main.voteptop[e.player.name] = signmsg3
-                            e.player.sendMessage("voteしました！")
-                        } else { //vote済みのプレイヤーなら
-                            if (main.voteptop[e.player.name] != signmsg3) {
-                                val oldname = main.votenum[main.voteptop[e.player.name].toString()]!!
-                                val oldname1 = oldname.minus(1)
-                                main.votenum[main.voteptop[e.player.name].toString()] = oldname1
-                                val newname = main.votenum[signmsg3]!!
-                                val newname1 = newname.plus(1)
-                                main.votenum[signmsg3] = newname1
-                                main.voteptop[e.player.name] = signmsg3
-                                e.player.sendMessage("voteを${signmsg3}に変更しました！")
-                            } //同じ人へ投票なら
-                            e.player.sendMessage("vote済みです")
+                            e.player.sendMessage("${signmsg3}に変更しました!")
+                            return
                         }
-                        e.isCancelled = true
-                    } //nullの場合スルー
-                } //vote以外の看板の場合スルー
+                    } //未投票なら
+                    main.votenum[signmsg3] = main.votenum[signmsg3]?.plus(1)!!
+                    main.voteptop[e.player.name] = signmsg3
+                    e.player.sendMessage("投票しました!")
+                    return
+                } //vote以外や登録されていない看板の場合スルー
             } //クリックが看板以外の場合スルー
         } //voteswitchがfalseの場合スルー
         return
     }
 
     fun votingtotal(){
-        val sort0 = main.votenum.toList().sortedByDescending { it.second }.toMap() //投票数の多い順にソートした変数を保存
-        val sortname = sort0.keys.toList()
         val votelistsize = main.votenum.size - 1
-        var oldvotenum = -1
-        var samevote = 0
         if (votelistsize >= 0) { //votenumに一人以上登録されてる場合
+            val sort0 = main.votenum.toList().sortedByDescending { it.second }.toMap() //投票数の多い順にソートした変数を保存
+            val sortname = sort0.keys.toList()
+            var oldvotenum = -1
+            var samevote = 0
             for (i in 0..votelistsize) { //順位(投票結果)をサーバー全員に送信
                 if (sort0[sortname[i]] == oldvotenum) {
                     samevote += 1
@@ -92,8 +84,6 @@ object VoteEvent : Listener {
                 oldvotenum = sort0[sortname[i]]!!
             }
             main.votenum.clear() //votenumの中身を全消去
-            main.votedplayer.clear() //votedplayerの中身を全消去
-            main.votedplayer[0] = "" //votedplayerのKey[0]を空で作成
         } //votenumが一人も登録されてないならスルー
     }
 

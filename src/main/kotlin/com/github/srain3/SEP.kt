@@ -11,10 +11,10 @@ import java.util.*
 
 class SEP : JavaPlugin() {
     var votenum = mutableMapOf<String, Int>()
-    var votedplayer = mutableMapOf<Int, String>()
     var voteptop = mutableMapOf<String, String>()
     var voteswitch = false
     var timerswitch = false
+    var ftimerswitch = false
 
     companion object {
         lateinit var plugin: JavaPlugin
@@ -23,11 +23,11 @@ class SEP : JavaPlugin() {
     override fun onEnable() {
         plugin = this
         server.pluginManager.registerEvents(VoteEvent,this)
-        server.pluginManager.registerEvents(TimerBB, this)
+        server.pluginManager.registerEvents(Timer, this)
         VoteEvent.voteEv(this)
-        TimerBB.timerBB(this)
-        votedplayer[0] = ""
-        TimerBB.bbtime.isVisible = false
+        Timer.timerBB(this)
+        Timer.bbtime.isVisible = false
+        Timer.ftime.isVisible = false
     }
 
     override fun onTabComplete(
@@ -36,28 +36,38 @@ class SEP : JavaPlugin() {
         alias: String,
         args: Array<out String>
     ): MutableList<String>? { //tab補完機能
-        if (args.size == 1){ //引数が1個の場合
-            return if (args[0].isEmpty()) {
-                Arrays.asList("vote","start")
-            } else {
-                //入力されている文字列と先頭一致
-                when (args[0].isNotEmpty()) {
-                    "vote".startsWith(args[0]) -> Arrays.asList("vote")
-                    "start".startsWith(args[0]) -> Arrays.asList("start")
+        if (command.name == "oyasaibb") { //oyasaibbの時
+            if (args.size == 1) { //引数が1個の場合
+                return if (args[0].isEmpty()) {
+                    Arrays.asList("vote", "start")
+                } else {
+                    //入力されている文字列と先頭一致
+                    when (args[0].isNotEmpty()) {
+                        "vote".startsWith(args[0]) -> Arrays.asList("vote")
+                        "start".startsWith(args[0]) -> Arrays.asList("start")
+                        else -> {
+                            //JavaPlugin#onTabComplete()を呼び出す
+                            super.onTabComplete(sender, command, alias, args)
+                        }
+                    }
+                }
+            }
+            if (args.size == 2) { //引数が2個の場合
+                return when (args[0]) {
+                    "vote" -> Arrays.asList("start", "stop")
+                    "start" -> Arrays.asList("[min]")
                     else -> {
-                        //JavaPlugin#onTabComplete()を呼び出す
                         super.onTabComplete(sender, command, alias, args)
                     }
                 }
             }
         }
-        if (args.size == 2){ //引数が2個の場合
-            return when (args[0]){
-                "vote" -> Arrays.asList("start", "stop")
-                "start" -> Arrays.asList("[min]")
-                else -> {
-                    super.onTabComplete(sender, command, alias, args)
-                }
+        if (command.name == "oyasaitimer") { //oyasaitimer(otimer)の場合
+            if (args.size == 1 ) {
+                return Arrays.asList("start", "stop")
+            }
+            if (args.size == 2 && args[0] == "start") {
+                return Arrays.asList("[min]")
             }
         }
         return null
@@ -98,14 +108,39 @@ class SEP : JavaPlugin() {
                 if (args.size == 2 && args[0] == "start") { //コマンド/oyasaibb startだった場合
                     if (!timerswitch) {
                         if (args[1].toIntOrNull() != null && args[1].toInt() > 0) { //引数2個目が数字の0以上の場合
-                            TimerBB.bbtime.isVisible = true
-                            TimerBB.buildtime(args[1].toInt() * 60, plugin)
+                            Timer.bbtime.isVisible = true
+                            Timer.buildtime(args[1].toInt() * 60, plugin)
                             return true
                         } //数字以外の場合
                         sender.sendMessage("/oyasaibb start [ビルドタイム(分)]")
                         return true
                     } //timerが起動中の場合
                     sender.sendMessage("タイマー起動中です。")
+                    return true
+                }
+                if (args.size == 1 && args[0] == "stop") { //コマンド/oyasaibb stopだった場合
+                    Timer.timecount = 0
+                    return true
+                }
+            }
+            if (command.name == "oyasaitimer" && hasPerm(sender, command.permission.toString())) { //otimerの場合
+                if (args.size == 2 && args[0] == "start" ){//otimer startの場合
+                    if (!ftimerswitch) {
+                        if (args[1].toIntOrNull() != null && args[1].toInt() > 0) {
+                            Timer.ftime.isVisible = true
+                            ftimerswitch = true
+                            Timer.freetimer(args[1].toInt() * 60, plugin)
+                            return true
+                        } //数値じゃない場合
+                        sender.sendMessage("/otimer start [数値(分)]")
+                        return true
+                    } else {
+                        sender.sendMessage("タイマー起動中です。")
+                        return true
+                    }
+                }
+                if (args.size == 1 && args[0] == "stop"){//otimer stopの場合
+                    Timer.ftimecount = 0
                     return true
                 }
             }

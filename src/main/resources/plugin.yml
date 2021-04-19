@@ -1,8 +1,11 @@
 name: SrainEventPack
-version: "0.1.0"
+version: "0.1.1"
 api-version: "1.16"
 main: com.github.srain3.SEP
 author: Srain3
+website: "https://github.com/Srain3/SrainEventPack"
+softdepend:
+  - LuckPerms
 
 commands:
   oyasaibb:
@@ -10,8 +13,18 @@ commands:
     description: Oyasai BuildBattle cmd.
     permission: sep.oyasaibb
     permission-message: "No Permission!!!"
+  oyasaitimer:
+    usage: "/<command>"
+    description: SEP Timer cmd.
+    permission: sep.timer
+    permission-message: "No Permission!!!"
+    aliases:
+      - otimer
 
 permissions:
   sep.oyasaibb:
     description: "Oyasai BuildBattleコマンドの全権限"
+    default: op
+  sep.timer:
+    description: "SEP Timerコマンドの権限"
     default: op
