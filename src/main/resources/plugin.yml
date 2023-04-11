@@ -1,6 +1,16 @@
 name: SrainEventPack
 version: "0.2.0"
 api-version: "1.19"
-main: com.github.srain3.SEP
+main: com.github.srain3.sep.SEP
 author: Srain3
 website: "https://github.com/Srain3/SrainEventPack"
+
+commands:
+  treasure:
+    description: "宝探しイベント用コマンド"
+    permission: "sep.treasure"
+
+permissions:
+  sep.treauser:
+    description: "宝探しイベント用コマンドの権限"
+    default: op
