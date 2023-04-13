@@ -11,6 +11,6 @@ commands:
     permission: "sep.treasure"
 
 permissions:
-  sep.treauser:
+  sep.treasure:
     description: "宝探しイベント用コマンドの権限"
     default: op
