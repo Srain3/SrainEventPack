@@ -1,29 +1,18 @@
 package com.github.srain3.sep.treasure
 
+import com.github.srain3.sep.treasure.TreasureCommands.eventLocList
 import org.bukkit.Location
-import java.util.UUID
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+import java.util.*
 
 data class TreasurePlayerData(
     val uuid: UUID,
-    val answerLocList: MutableList<Location>,
-    val clearLocList: MutableList<Location> = mutableListOf()
+    val clearLocList: MutableList<Location> = mutableListOf(),
+    var clearMillisTime: Long = 0L
 ) {
-    /**
-     * 答えのLocに一致するかどうか
-     * @return 一致しない場合false/一致して未発見の場合true/一致して発見済みの場合null
-     */
-    fun checkLocation(loc: Location): Boolean? {
-        return if (answerLocList.contains(loc)) {
-            if (clearLocList.contains(loc)) {
-                null
-            } else {
-                true
-            }
-        } else {
-            false
-        }
-    }
-
     /**
      * 見つけた宝の数
      */
@@ -35,6 +24,23 @@ data class TreasurePlayerData(
      * 見つけるべき宝の数
      */
     fun maxTreasure(): Int {
-        return answerLocList.size
+        return eventLocList.size
+    }
+
+    /**
+     * イベント開始から発見までのミリ秒保存
+     */
+    fun clearTimeMillis(startMillisTime: Long) {
+        clearMillisTime = Instant.now().minusMillis(startMillisTime).toEpochMilli()
+    }
+
+    /**
+     * 発見までのミリ秒を人間にわかりやすい表記で返す
+     */
+    fun clearTimeString(): String {
+        return LocalDateTime.ofInstant(
+            Instant.ofEpochMilli(clearMillisTime),
+            ZoneOffset.ofHours(0)
+        ).format(DateTimeFormatter.ISO_LOCAL_TIME)
     }
 }

@@ -3,6 +3,7 @@ package com.github.srain3.sep.treasure
 import com.github.srain3.sep.Tools.color
 import com.github.srain3.sep.treasure.TreasureCommands.eventLocList
 import com.github.srain3.sep.treasure.TreasureCommands.eventPlayerDataList
+import com.github.srain3.sep.treasure.TreasureCommands.eventStartMillisTime
 import com.github.srain3.sep.treasure.TreasureCommands.eventSwitch
 import com.github.srain3.sep.treasure.TreasureCommands.settingFile
 import com.github.srain3.sep.treasure.TreasureCommands.settingPlayer
@@ -55,14 +56,15 @@ object TreasureClickEvent : Listener {
                                 return@forEach
                             } else {
                                 data.clearLocList.add(clickLoc)
+                                data.clearTimeMillis(eventStartMillisTime)
                                 event.player.sendMessage("[&6宝探しEvent&r] ${data.clearTreasure()}個目を見つけました! 残り${data.maxTreasure()-data.clearTreasure()}個です".color())
                                 event.player.playSound(clickLoc, Sound.BLOCK_NOTE_BLOCK_HARP, 1.5F, 1F)
                                 if (data.clearTreasure() >= data.maxTreasure()) {
                                     event.player.server.onlinePlayers.forEach { player ->
-                                        player.sendMessage("[&6宝探しEvent&r] ${event.player.name}さんが${data.maxTreasure()}個全て見つけました!".color())
+                                        player.sendMessage("[&6宝探しEvent&r] ${event.player.name}さんが${data.maxTreasure()}個全て見つけました! Time=${data.clearTimeString()}".color())
                                         player.playSound(player.location, Sound.ENTITY_FIREWORK_ROCKET_LARGE_BLAST, 1.5F, 1F)
                                     }
-                                    event.player.server.logger.info("[宝探しEvent] ${event.player.name}さんが${data.maxTreasure()}個全て見つけました!")
+                                    event.player.server.logger.info("[宝探しEvent] ${event.player.name}さんが${data.maxTreasure()}個全て見つけました! Time=${data.clearTimeString()}")
                                 }
                                 return@forEach
                             }
@@ -72,19 +74,20 @@ object TreasureClickEvent : Listener {
                 }
             }
             if (!hitSwitch) {
-                val data = TreasurePlayerData(event.player.uniqueId, eventLocList)
+                val data = TreasurePlayerData(event.player.uniqueId)
                 eventPlayerDataList.add(data)
                 eventLocList.forEach { loc ->
                     if (loc == clickLoc) {
                         data.clearLocList.add(clickLoc)
+                        data.clearTimeMillis(eventStartMillisTime)
                         event.player.sendMessage("[&6宝探しEvent&r] ${data.clearTreasure()}個目を見つけました! 残り${data.maxTreasure()-data.clearTreasure()}個です".color())
                         event.player.playSound(clickLoc, Sound.BLOCK_NOTE_BLOCK_HARP, 1.5F, 1F)
                         if (data.clearTreasure() >= data.maxTreasure()) {
                             event.player.server.onlinePlayers.forEach { player ->
-                                player.sendMessage("[&6宝探しEvent&r] ${event.player.name}さんが${data.maxTreasure()}個全て見つけました!".color())
+                                player.sendMessage("[&6宝探しEvent&r] ${event.player.name}さんが${data.maxTreasure()}個全て見つけました! Time=${data.clearTimeString()}".color())
                                 player.playSound(player.location, Sound.ENTITY_FIREWORK_ROCKET_LARGE_BLAST, 1.5F, 1F)
                             }
-                            event.player.server.logger.info("[宝探しEvent] ${event.player.name}さんが${data.maxTreasure()}個全て見つけました!")
+                            event.player.server.logger.info("[宝探しEvent] ${event.player.name}さんが${data.maxTreasure()}個全て見つけました! Time=${data.clearTimeString()}")
                         }
                         return@forEach
                     }
