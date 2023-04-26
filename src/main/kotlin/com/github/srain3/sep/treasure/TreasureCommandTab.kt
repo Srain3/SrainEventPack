@@ -23,7 +23,7 @@ object TreasureCommandTab: TabCompleter {
                         return null
                     }
                     mutableListOf(
-                        "start", "end", "info"
+                        "start", "end", "info", "add", "remove"
                     )
                 }
 

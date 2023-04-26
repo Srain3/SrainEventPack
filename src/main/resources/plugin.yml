@@ -1,5 +1,5 @@
 name: SrainEventPack
-version: "0.2.1"
+version: "0.2.2"
 api-version: "1.19"
 main: com.github.srain3.sep.SEP
 author: Srain3

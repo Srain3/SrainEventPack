@@ -3,6 +3,10 @@ package com.github.srain3.sep.treasure
 import com.github.srain3.sep.Tools.color
 import com.github.srain3.sep.Tools.getYaml
 import com.github.srain3.sep.Tools.saveYaml
+import net.md_5.bungee.api.chat.ClickEvent
+import net.md_5.bungee.api.chat.HoverEvent
+import net.md_5.bungee.api.chat.TextComponent
+import net.md_5.bungee.api.chat.hover.content.Text
 import org.bukkit.Location
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
@@ -17,6 +21,7 @@ object TreasureCommands: CommandExecutor {
     var settingSwitch = false
     var settingPlayer: Player? = null
     lateinit var settingFile: FileConfiguration
+    var settingModeName = ""
 
     val eventLocList = mutableListOf<Location>()
     var eventSwitch = false
@@ -43,6 +48,7 @@ object TreasureCommands: CommandExecutor {
                                         settingSwitch = true
                                         settingPlayer = sender
                                         settingFile = "setting_kotlin_new.yml".getYaml()
+                                        settingModeName = "start"
                                         sender.sendMessage("[&6宝探しEvent&r] 設定モード開始(設定方法は宝にするHEADを右クリック)".color())
                                     }
                                 } else {
@@ -55,6 +61,7 @@ object TreasureCommands: CommandExecutor {
                                         settingSwitch = false
                                         settingPlayer = null
                                         "setting.yml".saveYaml(settingFile)
+                                        settingModeName = ""
                                         sender.sendMessage("[&6宝探しEvent&r] 設定モード終了".color())
                                     } else {
                                         sender.sendMessage("[&6宝探しEvent&r] 設定モードに入ってから使用してください".color())
@@ -63,12 +70,85 @@ object TreasureCommands: CommandExecutor {
                                     sender.sendMessage("[&6宝探しEvent&r] Playerからのみ受け付けるコマンドです".color())
                                 }
                             }
+                            "add" -> {
+                                if (sender is Player) {
+                                    if (settingSwitch) {
+                                        sender.sendMessage("[&6宝探しEvent&r] 既に設定モードが使われています。ADDモードをキャンセルしました".color())
+                                    } else {
+                                        settingSwitch = true
+                                        settingPlayer = sender
+                                        settingFile = "setting.yml".getYaml()
+                                        settingModeName = "add"
+                                        sender.sendMessage("[&6宝探しEvent&r] ADDモード開始(追加方法は宝にするHEADを右クリック)".color())
+                                    }
+                                } else {
+                                    sender.sendMessage("[&6宝探しEvent&r] Playerからのみ受け付けるコマンドです".color())
+                                }
+                            }
+                            "remove" -> {
+                                if (sender is Player) {
+                                    if (settingSwitch) {
+                                        sender.sendMessage("[&6宝探しEvent&r] 既に設定モードが使われています。REMOVEモードをキャンセルしました".color())
+                                    } else {
+                                        settingSwitch = true
+                                        settingPlayer = sender
+                                        settingFile = "setting.yml".getYaml()
+                                        settingModeName = "remove"
+                                        sender.sendMessage("[&6宝探しEvent&r] REMOVEモード開始(消去方法は対象のHEADを右クリック)".color())
+                                    }
+                                } else {
+                                    sender.sendMessage("[&6宝探しEvent&r] Playerからのみ受け付けるコマンドです".color())
+                                }
+                            }
                             "info" -> {
                                 val locList = settingFile.getList("locList") ?: return true
                                 sender.sendMessage("[&6宝探しEvent&r] ${locList.size}個の座標があります".color())
-                                locList.forEach { loc ->
-                                    if (loc is Location) {
-                                        sender.sendMessage("[&6宝探しEvent&r] world:${loc.world?.name} | x:${loc.blockX} y:${loc.blockY} z:${loc.blockZ}".color())
+                                if (sender is Player) {
+                                    locList.forEachIndexed { index, loc ->
+                                        if (loc is Location) {
+                                            val message = TextComponent()
+                                            when ((index + 1) % 2) {
+                                                0 -> { // 偶数
+                                                    message.text = "[&6宝探しEvent&r] &3${index + 1}. world:${loc.world?.name} | x:${loc.blockX} y:${loc.blockY} z:${loc.blockZ}".color()
+                                                }
+
+                                                1 -> { // 奇数
+                                                    message.text = "[&6宝探しEvent&r] &b${index + 1}. world:${loc.world?.name} | x:${loc.blockX} y:${loc.blockY} z:${loc.blockZ}".color()
+                                                }
+
+                                                else -> { // error
+                                                    message.text = "[error] when ((index+1) % 2)は0または1以外になりました"
+                                                }
+                                            }
+                                            message.hoverEvent = HoverEvent(
+                                                HoverEvent.Action.SHOW_TEXT,
+                                                Text("Click to Teleport (${index + 1})")
+                                            )
+                                            message.clickEvent = ClickEvent(
+                                                ClickEvent.Action.RUN_COMMAND,
+                                                "/tp ${loc.blockX} ${loc.blockY} ${loc.blockZ}"
+                                            )
+                                            sender.spigot().sendMessage(message)
+                                        }
+                                    }
+                                } else {
+                                    locList.forEachIndexed { index, loc ->
+                                        if (loc is Location) {
+                                            val message: String = when ((index + 1) % 2) {
+                                                0 -> { // 偶数
+                                                    "[&6宝探しEvent&r] &3${index + 1}. world:${loc.world?.name} | x:${loc.blockX} y:${loc.blockY} z:${loc.blockZ}".color()
+                                                }
+
+                                                1 -> { // 奇数
+                                                    "[&6宝探しEvent&r] &b${index + 1}. world:${loc.world?.name} | x:${loc.blockX} y:${loc.blockY} z:${loc.blockZ}".color()
+                                                }
+
+                                                else -> { // error
+                                                    "[error] when ((index+1) % 2)は0または1以外になりました"
+                                                }
+                                            }
+                                            sender.sendMessage(message)
+                                        }
                                     }
                                 }
                             }
@@ -118,11 +198,6 @@ object TreasureCommands: CommandExecutor {
                                     sender.sendMessage("[&6宝探しEvent&r] まだ順位がついていません".color())
                                     return true
                                 }
-                                /*
-                                val sortList = eventPlayerDataList.sortedBy { data ->
-                                    data.clearTreasure()
-                                }.reversed()
-                                */
                                 val sortList = eventPlayerDataList.sortedWith(
                                     compareByDescending<TreasurePlayerData> {it.clearTreasure()}.thenBy { it.clearMillisTime }
                                 )
@@ -188,16 +263,16 @@ object TreasureCommands: CommandExecutor {
     }
 
     private fun helpSettingCMD(sender: CommandSender) {
-        sender.sendMessage("[&6宝探しEvent&r] &6/treasure setting <start/end/info>".color())
-        sender.sendMessage("[&6宝探しEvent&r] 宝の位置設定を<開始/終了/確認>する。設定方法は宝にするHEADを右クリック".color())
+        sender.sendMessage("[&6宝探しEvent&r] &6/treasure setting <start/end/info/add/remove>".color())
+        sender.sendMessage("[&6宝探しEvent&r] 宝の位置設定を<開始/終了/確認/追加/消去>する。設定方法は宝にするHEADを右クリック".color())
         return
     }
 
     private fun helpEventCMD(sender: CommandSender) {
         sender.sendMessage("[&6宝探しEvent&r] &6/treasure event <start/stop/ranking>".color())
         sender.sendMessage("[&6宝探しEvent&r] 宝探しイベントを<開始/終了/ランキング確認>する".color())
-        sender.sendMessage("[&6宝探しEvent&r] <ランキング確認>のみ その後の引数で何位まで見るか指定可能↓".color())
-        sender.sendMessage("[&6宝探しEvent&r] &6/treasure event ranking [1～]".color())
+        sender.sendMessage("[&6宝探しEvent&r] <ランキング確認>のみ その後の引数で何位まで見るか、全員へ表示するかを指定可能↓".color())
+        sender.sendMessage("[&6宝探しEvent&r] &6/treasure event ranking [1～] [true/false]".color())
         return
     }
 }
