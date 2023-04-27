@@ -2,12 +2,15 @@ package com.github.srain3.sep.treasure
 
 import com.github.srain3.sep.Tools.color
 import com.github.srain3.sep.Tools.getYaml
+import com.github.srain3.sep.Tools.pl
 import com.github.srain3.sep.Tools.saveYaml
 import net.md_5.bungee.api.chat.ClickEvent
 import net.md_5.bungee.api.chat.HoverEvent
 import net.md_5.bungee.api.chat.TextComponent
 import net.md_5.bungee.api.chat.hover.content.Text
+import org.bukkit.Bukkit
 import org.bukkit.Location
+import org.bukkit.NamespacedKey
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
@@ -16,6 +19,7 @@ import org.bukkit.entity.Player
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
+import java.util.UUID
 
 object TreasureCommands: CommandExecutor {
     var settingSwitch = false
@@ -27,6 +31,9 @@ object TreasureCommands: CommandExecutor {
     var eventSwitch = false
     val eventPlayerDataList = mutableListOf<TreasurePlayerData>()
     var eventStartMillisTime = 0L
+    var eventRadarLevel = 0
+
+    private val treasureRadarBarKeyList = mutableListOf<NamespacedKey>()
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
         if (command.name != "treasure") return false
@@ -180,6 +187,7 @@ object TreasureCommands: CommandExecutor {
                                 sender.server.onlinePlayers.forEach { player ->
                                     player.sendMessage("[&6宝探しEvent&r] Start!!!".color())
                                 }
+                                TreasureRadarTimer.startTimer()
                             }
                             "stop" -> {
                                 if (!eventSwitch) {
@@ -188,6 +196,12 @@ object TreasureCommands: CommandExecutor {
                                 }
                                 eventSwitch = false
                                 sender.server.dispatchCommand(sender, "treasure event ranking 5 true")
+                                eventPlayerDataList.forEach { data ->
+                                    data.bossBar.removeAll()
+                                }
+                                treasureRadarBarKeyList.forEach { key ->
+                                    Bukkit.removeBossBar(key)
+                                }
                                 eventPlayerDataList.clear()
                                 sender.server.onlinePlayers.forEach { player ->
                                     player.sendMessage("[&6宝探しEvent&r] 終了しました".color())
@@ -249,6 +263,20 @@ object TreasureCommands: CommandExecutor {
                                     }
                                 }
                             }
+                            "radar" -> {
+                                if (args.size >= 3) {
+                                    val level = args[2].toIntOrNull()
+                                    if (level == null) {
+                                        helpRadarCMD(sender)
+                                    } else if (level > 3) {
+                                        helpRadarCMD(sender)
+                                    } else {
+                                        eventRadarLevel = level
+                                    }
+                                } else {
+                                    helpRadarCMD(sender)
+                                }
+                            }
                             else -> {
                                 helpEventCMD(sender)
                             }
@@ -269,10 +297,23 @@ object TreasureCommands: CommandExecutor {
     }
 
     private fun helpEventCMD(sender: CommandSender) {
-        sender.sendMessage("[&6宝探しEvent&r] &6/treasure event <start/stop/ranking>".color())
+        sender.sendMessage("[&6宝探しEvent&r] &6/treasure event <start/stop/ranking/radar>".color())
         sender.sendMessage("[&6宝探しEvent&r] 宝探しイベントを<開始/終了/ランキング確認>する".color())
         sender.sendMessage("[&6宝探しEvent&r] <ランキング確認>のみ その後の引数で何位まで見るか、全員へ表示するかを指定可能↓".color())
         sender.sendMessage("[&6宝探しEvent&r] &6/treasure event ranking [1～] [true/false]".color())
         return
+    }
+
+    private fun helpRadarCMD(sender: CommandSender) {
+        sender.sendMessage("[&6宝探しEvent&r] &6/treasure event radar <0～3>".color())
+        sender.sendMessage("[&6宝探しEvent&r] <0～3>は段階で、0=off(機能停止)/1～3=±10blockを何段階で表示するか".color())
+        sender.sendMessage("[&6宝探しEvent&r] 1の場合なら±10範囲内ということがわかる、3なら近ければ近いほど3段階で表示が変わる".color())
+        return
+    }
+
+    fun radarBossBarKey(uuid: UUID): NamespacedKey {
+        val key = NamespacedKey(pl, "treasure_radar-$uuid")
+        treasureRadarBarKeyList.add(key)
+        return key
     }
 }

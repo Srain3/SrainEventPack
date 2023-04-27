@@ -47,12 +47,24 @@ object TreasureCommandTab: TabCompleter {
                                     null
                                 }
                             }
+                        } else if (args[1] == "radar") {
+                            return when (args.size) {
+                                3 -> {
+                                    mutableListOf(
+                                        "<0～3>"
+                                    )
+                                }
+
+                                else -> {
+                                    null
+                                }
+                            }
                         } else {
                             return null
                         }
                     }
                     mutableListOf(
-                        "start", "stop", "ranking"
+                        "start", "stop", "ranking", "radar"
                     )
                 }
 

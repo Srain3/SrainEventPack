@@ -10,8 +10,11 @@ import com.github.srain3.sep.treasure.TreasureCommands.settingFile
 import com.github.srain3.sep.treasure.TreasureCommands.settingModeName
 import com.github.srain3.sep.treasure.TreasureCommands.settingPlayer
 import com.github.srain3.sep.treasure.TreasureCommands.settingSwitch
+import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Sound
+import org.bukkit.boss.BarColor
+import org.bukkit.boss.BarStyle
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
@@ -85,6 +88,7 @@ object TreasureClickEvent : Listener {
                                 return@forEach
                             } else {
                                 data.clearLocList.add(clickLoc)
+                                data.searchLocList.remove(clickLoc)
                                 data.clearTimeMillis(eventStartMillisTime)
                                 event.player.sendMessage("[&6宝探しEvent&r] ${data.clearTreasure()}個目を見つけました! 残り${data.maxTreasure()-data.clearTreasure()}個です".color())
                                 event.player.playSound(clickLoc, Sound.BLOCK_NOTE_BLOCK_HARP, 1.5F, 1F)
@@ -103,11 +107,15 @@ object TreasureClickEvent : Listener {
                 }
             }
             if (!hitSwitch) {
-                val data = TreasurePlayerData(event.player.uniqueId)
+                val bossBar = Bukkit.createBossBar(TreasureCommands.radarBossBarKey(event.player.uniqueId), "[&6お宝レーダー&r] &aLv.0".color(), BarColor.RED, BarStyle.SEGMENTED_6)
+                bossBar.isVisible = false
+                bossBar.addPlayer(event.player)
+                val data = TreasurePlayerData(event.player.uniqueId, bossBar, eventLocList.toMutableList())
                 eventPlayerDataList.add(data)
                 eventLocList.forEach { loc ->
                     if (loc == clickLoc) {
                         data.clearLocList.add(clickLoc)
+                        data.searchLocList.remove(clickLoc)
                         data.clearTimeMillis(eventStartMillisTime)
                         event.player.sendMessage("[&6宝探しEvent&r] ${data.clearTreasure()}個目を見つけました! 残り${data.maxTreasure()-data.clearTreasure()}個です".color())
                         event.player.playSound(clickLoc, Sound.BLOCK_NOTE_BLOCK_HARP, 1.5F, 1F)

@@ -2,6 +2,7 @@ package com.github.srain3.sep.treasure
 
 import com.github.srain3.sep.treasure.TreasureCommands.eventLocList
 import org.bukkit.Location
+import org.bukkit.boss.BossBar
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset
@@ -10,6 +11,8 @@ import java.util.*
 
 data class TreasurePlayerData(
     val uuid: UUID,
+    val bossBar: BossBar,
+    val searchLocList: MutableList<Location>,
     val clearLocList: MutableList<Location> = mutableListOf(),
     var clearMillisTime: Long = 0L
 ) {
@@ -42,5 +45,17 @@ data class TreasurePlayerData(
             Instant.ofEpochMilli(clearMillisTime),
             ZoneOffset.ofHours(0)
         ).format(DateTimeFormatter.ISO_LOCAL_TIME)
+    }
+
+    /**
+     * Locの周囲±10block以内に未発見の宝が一つ以上ある場合該当のLocまでの距離を返す、なければnullを返す
+     */
+    fun isTreasure(nowLoc: Location): Double? {
+        searchLocList.forEach { sLoc ->
+            val length = nowLoc.toVector().distance(sLoc.toVector())
+            if (length.isNaN()) return@forEach
+            if (length in -10.0..10.0) return length
+        }
+        return null
     }
 }
